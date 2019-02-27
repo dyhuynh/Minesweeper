@@ -5,11 +5,14 @@ public final static int NUM_ROWS = 20;
 public final static int NUM_COLS = 20;
 
 private MSButton[][] buttons; //2d array of minesweeper buttons
-private ArrayList <MSButton> bombs; //ArrayList of just the minesweeper buttons that are mined
+private ArrayList <MSButton> bombs;
+public boolean game = true; //ArrayList of just the minesweeper buttons that are mined
+public int check = 0;
+
 void setup ()
 {
-
-    size(400, 400);
+    game = true;
+    size(400, 500);
     textAlign(CENTER,CENTER);
     textSize(10);
     // make the manager
@@ -31,45 +34,64 @@ public void setBombs() {
      int col = (int)(Math.random()*20);
         if (!bombs.contains(buttons[row][col])) {
             bombs.add(buttons[row][col]);
-            System.out.println(row+"," + col);
         }
     }
-    System.out.println (bombs.size());
+}
+
+public void keyPressed() {
+    if (key == 'r') {
+        restart();
+    }
+}
+
+public void restart() {
+    setup();
 }
 
 public void draw ()
-{
+{   
+    fill(130);
     background( 0 );
+    textSize(30);
+    text(40-check+" Bombs Left",150,450);
+    textSize(10);
+
     if(isWon())
         displayWinningMessage();
 }
 public boolean isWon()
-{
-    int check = 0;
+{       check=0;
         for (MSButton bomb : bombs) {
             if (bomb.isMarked()) {check++;}
         }
-        if (check >= 2) {return true;} 
-        System.out.println(check);   
+        if (check >= 39) {return true;} 
     return false;
 }
 public void displayLosingMessage()
-{   
-    textSize(32);
-    text("you lose",300,300);
-    textSize(10);
+{   String loseMessage = "You suck!";
+    game=false;
+    
     for (MSButton mine : bombs) {
         mine.clicked=true;    
+    }
+      for (int r = 5; r<=15; r++) {
+        for(int i = 6; i<6+loseMessage.length();i++) {
+        buttons[r][i].notClick();
+        buttons[r][i].notMark();
+        buttons[r][i].setLabel(""+ loseMessage.charAt(i-6));    
+        }
     }
 }
 public void displayWinningMessage()
 {
     String winMessage = "You Win!";
+    game=false;
     for (MSButton[] row : buttons) {
         for (MSButton bob : row) {
             bob.notClick();
             bob.notMark();
             bob.setLabel("");
+
         }
     }
     for (int r = 5; r<=15; r++) {
@@ -115,19 +137,21 @@ public class MSButton
     
     public void mousePressed () 
     {
-           clicked = true;
+        if (game==true) {
+               clicked = true;
 
-        if (mouseButton==RIGHT) {
-            marked=!marked;
-            if (marked == false) {clicked=false;}
-        }
-        else if (!marked && countBombs(r,c)>0) {setLabel(""+countBombs(r,c));}
-        else {
-            for(int i =-1;i<=1;i++)
-          for (int nI = -1;nI<=1;nI++)
-          if ((i==0&&nI==0)==false) {
-            if (isValid(r+i,c+nI) && !buttons[r+i][c+nI].isClicked()) {buttons[r+i][c+nI].mousePressed();}
-          }  
+            if (mouseButton==RIGHT) {
+                marked=!marked;
+                if (marked == false) {clicked=false;}
+            }
+            else if (!marked && countBombs(r,c)>0) {setLabel(""+countBombs(r,c));}
+            else {
+                for(int i =-1;i<=1;i++)
+              for (int nI = -1;nI<=1;nI++)
+              if ((i==0&&nI==0)==false) {
+                if (isValid(r+i,c+nI) && !buttons[r+i][c+nI].isClicked()) {buttons[r+i][c+nI].mousePressed();}
+              }  
+            }
         }
 
     }
@@ -138,7 +162,6 @@ public class MSButton
             fill(0);
          else if( clicked && bombs.contains(this) ) {
           fill(255,0,0);
-          System.out.println("yeet");
             displayLosingMessage();
         }
         else if(clicked)
@@ -170,7 +193,6 @@ public class MSButton
       if ((i==0&&nI==0)==false) {
         if (isValid(row+i,col+nI) && bombs.contains(buttons[row+i][col+nI])) {numBombs++;}
       }  
-      System.out.println(numBombs);
         return numBombs;
     }
 }
